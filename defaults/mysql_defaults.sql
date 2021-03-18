@@ -5,3 +5,4 @@ update zm.Config SET Value='-vcodec libx264 -threads 2 -b 2000k -minrate 800k -m
 update zm.Config SET Value='mp4* mpg mpeg wmv asf avi mov swf 3gp**' WHERE Name='ZM_FFMPEG_FORMATS';
 update zm.Config SET Value='/usr/sbin/ssmtp' WHERE Name='ZM_SSMTP_PATH';
 update zm.Config SET Value=0 WHERE Name='ZM_RUN_AUDIT';
+update zm.Config SET Value='' WHERE Name='ZM_PATH_CAMBOZOLA';

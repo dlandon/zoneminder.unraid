@@ -23,6 +23,7 @@ COPY zmeventnotification/ /root/zmeventnotification/
 
 RUN	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
 	add-apt-repository ppa:ondrej/php && \
+	add-apt-repository ppa:ondrej/apache2 && \
 	apt-get update && \
 	apt-get -y upgrade -o Dpkg::Options::="--force-confold" && \
 	apt-get -y dist-upgrade -o Dpkg::Options::="--force-confold" && \
