@@ -1,0 +1,24 @@
+version: '3'
+services:
+  zoneminder:
+    container_name: zoneminder
+    image: dlandon/zoneminder.unraid:latest
+    restart: unless-stopped
+    ports:
+      - 8443:443/tcp
+      - 9000:9000/tcp
+    shm_size: 8G
+    environment:
+      - TZ=Europe/London
+      - PUID=99
+      - PGID=100
+      - MULTI_PORT_START=0
+      - MULTI_PORT_END=0
+    volumes:
+      - ./config:/config
+      - ./data:/var/cache/zoneminder
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://0.0.0.0:443/zm"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
