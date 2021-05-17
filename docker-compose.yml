@@ -7,6 +7,7 @@ services:
     ports:
       - 8443:443/tcp
       - 9000:9000/tcp
+#      - 6802:6802/tcp # uncomment to open telnet port for OPT_TRIGGERS
     shm_size: 8G
     environment:
       - TZ=Europe/London
