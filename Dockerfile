@@ -62,7 +62,8 @@ RUN	cd /root && \
 	rm mysql_defaults.sql
 
 FROM build3 as build4
-RUN	mv /root/zoneminder /etc/init.d/zoneminder && \
+RUN	systemd-tmpfiles --create zoneminder.conf && \
+	mv /root/zoneminder /etc/init.d/zoneminder && \
 	chmod +x /etc/init.d/zoneminder && \
 	service mysql restart && \
 	sleep 5 && \
