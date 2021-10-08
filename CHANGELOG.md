@@ -1,5 +1,8 @@
 ## Change Log
 
+### 2021.10.08
+- Delay start of Zoneminder on first run.
+
 ### 2021.06.30
 - Apply a fix for database failure on first run.
 
