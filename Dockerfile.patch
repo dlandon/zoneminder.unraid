@@ -1,0 +1,12 @@
+FROM dlandon/zoneminder:latest
+
+
+VOLUME \
+	["/config"] \
+	["/var/cache/zoneminder"]
+
+EXPOSE 80 443 9000
+COPY init/40_firstrun.sh /etc/my_init.d/40_firstrun.sh
+RUN chmod +x /etc/my_init.d/40_firstrun.sh
+
+CMD ["/sbin/my_init"]

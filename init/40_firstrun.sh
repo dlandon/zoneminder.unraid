@@ -309,6 +309,7 @@ service apache2 start
 if [ "$NO_START_ZM" != "1" ]; then
 	# Start mysql
 	sleep 3
+	service mysql stop  # if mysql is running already, it will not be reading from /config/mysql but the installed /var/lib/mysql
 	service mysql start
 
 	# Update the database if necessary
