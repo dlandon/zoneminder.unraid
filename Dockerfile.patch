@@ -1,4 +1,4 @@
-FROM dlandon/zoneminder:latest
+FROM dlandon/zoneminder.unraid:latest
 
 
 VOLUME \
