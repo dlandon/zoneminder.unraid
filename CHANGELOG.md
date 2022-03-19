@@ -1,5 +1,8 @@
 ## Change Log
 
+### 2022.03.19
+- Update to Focal 1.2.0.
+
 ### 2021.10.29
 - Fix update issue with mariadb.
 
