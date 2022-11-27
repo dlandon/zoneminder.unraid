@@ -1,5 +1,8 @@
 ## Change Log
 
+### 2022.11.26
+- Fix for Zoneminder 1.36.32
+
 ### 2022.03.19
 - Update to Focal 1.2.0.
 

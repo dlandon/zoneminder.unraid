@@ -1,4 +1,4 @@
-FROM phusion/baseimage:master as builder
+FROM phusion/baseimage:focal-1.2.0 as builder
 
 LABEL maintainer="dlandon"
 
@@ -29,7 +29,7 @@ RUN	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
 	apt-get -y dist-upgrade -o Dpkg::Options::="--force-confold" && \
 	apt-get -y install apache2 mariadb-server && \
 	apt-get -y install ssmtp mailutils net-tools wget sudo make && \
-	apt-get -y install php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd && \
+	apt-get -y install php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd php-intl php$PHP_VERS-intl && \
 	apt-get -y install libcrypt-mysql-perl libyaml-perl libjson-perl libavutil-dev ffmpeg && \
 	apt-get -y install --no-install-recommends libvlc-dev libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output && \
 	apt-get -y install zoneminder
@@ -38,9 +38,8 @@ FROM build1 as build2
 RUN	rm /etc/mysql/my.cnf && \
 	cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/my.cnf && \
 	adduser www-data video && \
-	a2enmod php$PHP_VERS proxy_fcgi ssl rewrite expires headers && \
+	a2enmod php$PHP_VERS proxy_fcgi setenvif ssl rewrite expires headers && \
 	a2enconf php$PHP_VERS-fpm zoneminder && \
-	echo "extension=apcu.so" > /etc/php/$PHP_VERS/mods-available/apcu.ini && \
 	echo "extension=mcrypt.so" > /etc/php/$PHP_VERS/mods-available/mcrypt.ini && \
 	perl -MCPAN -e "force install Net::WebSocket::Server" && \
 	perl -MCPAN -e "force install LWP::Protocol::https" && \

@@ -4,7 +4,7 @@
 #
 
 if [[ -f /config/keys/cert.key && -f /config/keys/cert.crt ]]; then
-	echo "using existing keys in \"/config/keys\""
+	echo "Using existing keys in \"/config/keys\""
 	if [[ ! -f /config/keys/ServerName ]]; then
 		echo "localhost" > /config/keys/ServerName
 	fi
