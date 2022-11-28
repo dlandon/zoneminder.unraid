@@ -54,13 +54,13 @@ $ENV{SHELL} = '/bin/sh' if exists $ENV{SHELL};
 delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 
 ####################################
-my $app_version = '6.1.23';
+my $app_version = '6.1.27';
 ####################################
 
 # do this before any log init etc.
 my $first_arg = @ARGV[0];
 if ($first_arg eq '--version') {
-  print ($app_version);
+  print ("$app_version\n");
   exit(0);
 }
 
@@ -118,6 +118,7 @@ use constant {
   DEFAULT_CUSTOMIZE_TAG_ALARM_EVENT_ID            => 'no',
   DEFAULT_CUSTOMIZE_USE_CUSTOM_NOTIFICATION_SOUND => 'no',
   DEFAULT_CUSTOMIZE_INCLUDE_PICTURE               => 'no',
+  
 
   DEFAULT_USE_HOOKS                          => 'no',
   DEFAULT_HOOK_KEEP_FRAME_MATCH_TYPE         => 'yes',
@@ -137,8 +138,11 @@ use constant {
     '/var/lib/zmeventnotification/misc/escontrol_interface.dat',
   DEFAULT_FCM_DATE_FORMAT => '%I:%M %p, %d-%b',
   DEFAULT_FCM_ANDROID_PRIORITY=>'high',
+  DEFAULT_FCM_LOG_RAW_MESSAGE=>'no',
+  DEFAULT_FCM_LOG_MESSAGE_ID=>'NONE',
   DEFAULT_MAX_FCM_PER_MONTH_PER_TOKEN => 8000,
-
+  DEFAULT_FCM_V1_KEY => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJnZW5lcmF0b3IiOiJwbGlhYmxlIHBpeGVscyIsImlhdCI6MTYwMTIwOTUyNSwiY2xpZW50Ijoiem1uaW5qYSJ9.mYgsZ84i3aUkYNv8j8iDsZVVOUIJmOWmiZSYf15O0zc',
+  DEFAULT_FCM_V1_URL => 'https://us-central1-ninja-1105.cloudfunctions.net/send_push',
   DEFAULT_MAX_PARALLEL_HOOKS => 0,
 };
 
@@ -219,7 +223,10 @@ my $token_file;
 my $fcm_date_format;
 my $fcm_android_priority;
 my $fcm_android_ttl;
-
+my $fcm_log_raw_message;
+my $fcm_log_message_id;
+my $fcm_v1_key;
+my $fcm_v1_url;
 
 my $ssl_enabled;
 my $ssl_cert_file;
@@ -456,19 +463,19 @@ sub check_for_duplicate_token {
      $token_duplicates{$_->{token}}++ if $_->{token}; 
    }
   foreach (keys %token_duplicates) {
-      printDebug('...'.substr($_,-10)." occurs: ".$token_duplicates{$_}." times",5) if ($token_duplicates{$_} > 1) ;
+      printDebug('...'.substr($_,-10)." occurs: ".$token_duplicates{$_}." times",2) if ($token_duplicates{$_} > 1) ;
     }
 
 }
 
 sub shutdown_sig_handler {
   $es_terminate = 1;
-  printDebug ('Received request to shutdown, please wait');
+  printDebug ('Received request to shutdown, please wait',1);
 }
 
 sub chld_sig_handler {
   my $saved_status = $!;
-  printDebug ('Child signal handler invoked',4);
+  printDebug ('Child signal handler invoked',1);
   # Wait for a child to terminate
   while ( (my $cpid = waitpid(-1, WNOHANG)) > 0 ) {
     #$pids_to_reap{$cpid} = { status=>$?, stopped=>time() };
@@ -527,7 +534,7 @@ sub config_get_val {
 
     my $val = $config->val( 'general', $token );
     $val = $config->val( $sect, $token ) if !$val;
-    printDebug( "config string substitution: {{$token}} is '$val'", 3 );
+    printDebug( "config string substitution: {{$token}} is '$val'", 2 );
     $final_val =~ s/\{\{$token\}\}/$val/g;
 
   }
@@ -598,6 +605,16 @@ sub loadEsConfigSettings {
 
   $token_file =
     config_get_val( $config, 'fcm', 'token_file', DEFAULT_FCM_TOKEN_FILE );
+
+  $fcm_log_raw_message=
+    config_get_val( $config, 'fcm', 'fcm_log_raw_message', DEFAULT_FCM_LOG_RAW_MESSAGE );
+  $fcm_log_message_id=
+    config_get_val( $config, 'fcm', 'fcm_log_message_id', DEFAULT_FCM_LOG_MESSAGE_ID );
+  $fcm_v1_key=
+    config_get_val( $config, 'fcm', 'fcm_v1_key', DEFAULT_FCM_V1_KEY );
+  $fcm_v1_url=
+    config_get_val( $config, 'fcm', 'fcm_v1_url', DEFAULT_FCM_V1_URL );
+
   $ssl_enabled = config_get_val( $config, 'ssl', 'enable', DEFAULT_SSL_ENABLE );
   $ssl_cert_file = config_get_val( $config, 'ssl', 'cert' );
   $ssl_key_file  = config_get_val( $config, 'ssl', 'key' );
@@ -645,7 +662,7 @@ sub loadEsConfigSettings {
   if ($es_rules_file) {
     my $hr;
     my $fh;
-    printDebug("rules: Loading es rules json: $es_rules_file");
+    printDebug("rules: Loading es rules json: $es_rules_file",2);
     if ( open( $fh, "<", $es_rules_file ) ) {
       my $data = do { local $/ = undef; <$fh> };
       eval { $hr = decode_json($data); };
@@ -739,6 +756,10 @@ sub yes_or_no {
   return $_[0] ? 'yes' : 'no';
 }
 
+sub default_or_custom {
+  return $_[0] eq $_[1] ? 'default':'custom';
+}
+
 sub value_or_undefined {
   return defined($_[0]) ? $_[0] : '(undefined)';
   #return $_[0] || '(undefined)';
@@ -785,7 +806,11 @@ FCM Date Format....................... ${\(value_or_undefined($fcm_date_format))
 Only show latest FCMv1 message........ ${\(yes_or_no($replace_push_messages))}
 Android FCM push priority............. ${\(value_or_undefined($fcm_android_priority))}
 Android FCM push ttl.................. ${\(value_or_undefined($fcm_android_ttl))}
-
+Log FCM message ID.................... ${\(value_or_undefined($fcm_log_message_id))}
+Log RAW FCM Messages...................${\(yes_or_no($fcm_log_raw_message))}
+FCM V1 URL............................ ${\(value_or_undefined($fcm_v1_url))}
+FCM V1 Key.............................${\(default_or_custom($fcm_v1_key, DEFAULT_FCM_V1_KEY))}
+ 
 Token file ........................... ${\(value_or_undefined($token_file))}
 
 Use MQTT ............................. ${\(yes_or_no($use_mqtt))}
@@ -858,7 +883,8 @@ if ($use_fcm) {
   }
   else {
     printInfo('Push enabled via FCM');
-    printDebug("fcmv1: --> FCM V1 APIs: $use_fcmv1");
+    printDebug("fcmv1: --> FCM V1 APIs: $use_fcmv1",2);
+    printDebug ("fcmv1:--> Your FCM messages will be LOGGED at pliablepixel's server because your fcm_log_raw_message in zmeventnotification.ini is yes. Please turn it off, if you don't want it to!",1) if ($fcm_log_raw_message);
   }
 
 }
@@ -944,7 +970,7 @@ sub at_eol($) { $_[0] =~ /\n\z/ }
 
 
 printInfo("|------- Starting ES version: $app_version ---------|");
-printDebug( "Started with: perl:" . $^X . " and command:" . $0, 1 );
+printDebug( "Started with: perl:" . $^X . " and command:" . $0, 2 );
 
 my $zmdc_status = `zmdc.pl status zmeventnotification.pl`;
 if ( index( $zmdc_status, 'running since' ) != -1 ) {
@@ -1046,13 +1072,13 @@ sub parseDetectResults {
 
 sub saveEsControlSettings() {
   if ( !$use_escontrol_interface ) {
-    printDebug( 'ESCONTROL_INTERFACE is disabled. Not saving control data', 1 );
+    printDebug( 'ESCONTROL_INTERFACE is disabled. Not saving control data', 2 );
 
   }
   return if ( !$use_escontrol_interface );
   printDebug(
     "ESCONTROL_INTERFACE: Saving admin interfaces to $escontrol_interface_file",
-    1
+    2
   );
   store( \%escontrol_interface_settings, $escontrol_interface_file )
     or Fatal("Error writing to $escontrol_interface_file: $!");
@@ -1067,12 +1093,12 @@ sub loadEsControlSettings() {
   }
   printDebug(
     "ESCONTROL_INTERFACE: Loading persistent admin interface settings from $escontrol_interface_file",
-    1
+    2
   );
   if ( !-f $escontrol_interface_file ) {
     printDebug(
       'ESCONTROL_INTERFACE: admin interface file does not exist, creating...',
-      1 );
+      2 );
     saveEsControlSettings();
 
   }
@@ -1114,7 +1140,7 @@ sub populateEsControlNotification {
         $found = 1;
         printDebug(
           "ESCONTROL_INTERFACE: Discovered new monitor:$id, settings notification to ESCONTROL_DEFAULT_NOTIFY",
-          1
+          2
         );
       }
 
@@ -1206,7 +1232,7 @@ sub processEsControlCommand {
       $escontrol_interface_settings{notifications}{$mid} = ESCONTROL_FORCE_MUTE;
       printDebug(
         "ESCONTROL: setting notification for Mid:$mid to ESCONTROL_FORCE_MUTE",
-        1
+        2
       );
     }
 
@@ -1823,17 +1849,12 @@ sub sendOverFCM {
 
 sub sendOverFCMV1 {
 
-  use constant NINJA_FCMV1_TOKEN =>
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJnZW5lcmF0b3IiOiJwbGlhYmxlIHBpeGVscyIsImlhdCI6MTYwMTIwOTUyNSwiY2xpZW50Ijoiem1uaW5qYSJ9.mYgsZ84i3aUkYNv8j8iDsZVVOUIJmOWmiZSYf15O0zc';
-  use constant NINJA_FCMV1_URL =>
-    'https://us-central1-ninja-1105.cloudfunctions.net/send_push';
-
   my $alarm      = shift;
   my $obj        = shift;
   my $event_type = shift;
   my $resCode    = shift;
-  my $key        = NINJA_FCMV1_TOKEN;
-  my $uri        = NINJA_FCMV1_URL;
+  my $key        = $fcm_v1_key;
+  my $uri        = $fcm_v1_url;
 
   my $mid   = $alarm->{MonitorId};
   my $eid   = $alarm->{EventId};
@@ -1844,7 +1865,7 @@ sub sendOverFCMV1 {
     my $month = $obj->{invocations}->{at};
     if ($curmonth != $month) {
       $obj->{invocations}->{count} = 0;
-      printDebug ('Resetting counters for token'. substr( $obj->{token}, -10 )." as month changed");
+      printDebug ('Resetting counters for token'. substr( $obj->{token}, -10 )." as month changed",1);
 
     }
     if ($obj->{invocations}->{count} > DEFAULT_MAX_FCM_PER_MONTH_PER_TOKEN) {
@@ -1929,6 +1950,7 @@ sub sendOverFCMV1 {
     body  => $body,
     sound => 'default',
     badge => int($badge),
+    log_message_id => $fcm_log_message_id,
     data  => {
       mid                     => $mid,
       eid                     => $eid,
@@ -1971,6 +1993,10 @@ sub sendOverFCMV1 {
 
   }
 
+  if ($fcm_log_raw_message) {
+      $message_v2->{log_raw_message} = 'yes';
+      printDebug ("The server cloud function at $uri will log your full message. Please ONLY USE THIS FOR DEBUGGING with me author and turn off later",2);
+  }
 
   if ( $picture_url && $include_picture ) {
 
@@ -2623,7 +2649,7 @@ sub processIncomingMessage {
     # This sub type is when a device token is registered
     if ( $json_string->{data}->{type} eq 'token' ) {
       if (!defined($json_string->{data}->{token}) || ($json_string->{data}->{token} eq "")) {
-        printDebug ("Ignoring token command, I got ".encode_json($json_string));
+        printDebug ("Ignoring token command, I got ".encode_json($json_string),2);
         return;
       }
       # a token must have a platform
@@ -3469,7 +3495,7 @@ sub sendEvent {
     . '--SPLIT--'
     . $t . "\n";
 
-  printDebug( 'child finished writing to parent', 3 );
+  printDebug( 'child finished writing to parent', 2 );
 
 }
 
@@ -3656,14 +3682,14 @@ sub isAllowedInRules {
       next;
     }
     printDebug(
-      "rules:(eid: $eid)  seeing if cause_has:"
+      "rules:(eid: $eid)  seeing if cause_has: ->"
         . $rule_ref->{cause_has}
-        . " is part of $cause:",
+        . "<- is part of ->$cause<-",
       2
     );
     if ( exists( $rule_ref->{cause_has} ) ) {
-      my $re = qr/$rule_ref->{cause_has}/;
-      if ( lc($cause) !~ /$re/i ) {
+      my $re = qr/$rule_ref->{cause_has}/i;
+      if ( lc($cause) !~ /$re/) {
         printDebug(
           "rules: (eid: $eid) Skipping this rule as "
             . $rule_ref->{cause_has}
@@ -3888,6 +3914,8 @@ sub processNewAlarmsInFork {
 
           chomp($res);
           my ( $resTxt, $resJsonString ) = parseDetectResults($res);
+          # don't know why, but exit 1 from signal handler in shell script lands up as 0 here
+          $hookResult = 1 if (!$resTxt); 
           $startHookResult = $hookResult;
 
           printDebug(
@@ -4085,6 +4113,7 @@ sub processNewAlarmsInFork {
 
             # This will be prefixed, so no need to add old notes back
             updateEventinZmDB( $eid, $hookString );
+            $notes = $hookString . " " . $notes;
           }
           else {
             printDebug( "DB Event notes contain detection text, all good", 2 );
@@ -4120,11 +4149,15 @@ sub processNewAlarmsInFork {
           print WRITER "update_parallel_hooks--TYPE--add\n";
           my $res = `$cmd`;
           $hookResult = $? >> 8; # make sure it is before pipe
+          
 
           print WRITER "update_parallel_hooks--TYPE--del\n";
 
           chomp($res);
           my ( $resTxt, $resJsonString ) = parseDetectResults($res);
+
+          # don't know why, but exit 1 from signal handler in shell script lands up as 0 here
+          $hookResult = 1 if (!$resTxt); 
 
           $alarm->{End}->{State} = 'ready';
           printDebug(
@@ -4360,7 +4393,7 @@ sub processNewAlarmsInFork {
         # The alarm has ended
       {
         printDebug( "For $mid ($mname), SHM says: state=$state, eid=$shm_eid",
-          3 );
+          2 );
         printInfo("Event $eid for Monitor $mid has finished");
         $endProcessed = 1;
 
@@ -4375,7 +4408,7 @@ sub processNewAlarmsInFork {
             . $alarm->{End}->{State}
             . ' with cause=>'
             . $alarm->{End}->{Cause},
-          3
+          2
         );
       }
     }
@@ -4397,7 +4430,7 @@ sub restartES {
     exit 0;
   }
   else {
-    printDebug('Self exec-ing as zmdc is not tracking me');
+    printDebug('Self exec-ing as zmdc is not tracking me',1);
 
     # untaint via reg-exp
     if ( $0 =~ /^(.*)$/ ) {

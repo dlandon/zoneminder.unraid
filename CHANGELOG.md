@@ -1,5 +1,8 @@
 ## Change Log
 
+### 2022.11.28
+- Update zmNinja Event Notification Server to version 6.1.27.
+
 ### 2022.11.26
 - Fix for Zoneminder 1.36.32
 
