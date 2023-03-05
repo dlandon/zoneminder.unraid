@@ -1,27 +1,29 @@
 ## Change Log
+### 2023-03-04
+- Refresh docker container.
 
-### 2022.11.28
+### 2022-11-28
 - Update zmNinja Event Notification Server to version 6.1.27.
 
-### 2022.11.26
+### 2022-11-26
 - Fix for Zoneminder 1.36.32
 
-### 2022.03.19
+### 2022-03-19
 - Update to Focal 1.2.0.
 
-### 2021.10.29
+### 2021-10-29
 - Fix update issue with mariadb.
 
-### 2021.10.08
+### 2021-10-08
 - Delay start of Zoneminder on first run.
 
-### 2021.06.30
+### 2021-06-30
 - Apply a fix for database failure on first run.
 
-### 2021.05.30
+### 2021-05-30
 - Fix for Zoneminder 1.36.3.
 
-### 2021.05.23
+### 2021-05-23
 - Update to Zoneminder 1.36.
 
 ### 2021-05-21
