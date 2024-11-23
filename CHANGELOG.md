@@ -1,5 +1,8 @@
 ## Change Log
 
+### 2024-11-23
+- Update packages after they are installed.
+
 ### 2024-10-04
 - Refresh docker container.
 

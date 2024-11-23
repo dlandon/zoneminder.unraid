@@ -14,6 +14,7 @@ if [ "`cat /tmp/test_update | grep 'Failed'`" = "" ]; then
 
 	# Clean + purge old/obsoleted packages
 	apt-get -y autoremove
+	apt-get -y clean
 else
 	echo "Warning: Unable to update!  Check Internet connection."
 fi

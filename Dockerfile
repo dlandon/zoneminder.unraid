@@ -1,4 +1,4 @@
-FROM phusion/baseimage:focal-1.2.0 as builder
+FROM phusion/baseimage:focal-1.2.0
 
 LABEL maintainer="dlandon"
 
@@ -16,7 +16,6 @@ ENV	DEBCONF_NONINTERACTIVE_SEEN="true" \
 	PUID="99" \
 	PGID="100"
 
-FROM builder as build1
 COPY init/ /etc/my_init.d/
 COPY defaults/ /root/
 COPY zmeventnotification/ /root/zmeventnotification/
@@ -34,7 +33,6 @@ RUN	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
 	apt-get -y install --no-install-recommends libvlc-dev libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output && \
 	apt-get -y install zoneminder
 	
-FROM build1 as build2
 RUN	rm /etc/mysql/my.cnf && \
 	cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/my.cnf && \
 	adduser www-data video && \
@@ -47,7 +45,6 @@ RUN	rm /etc/mysql/my.cnf && \
 	perl -MCPAN -e "force install Net::MQTT::Simple" && \
 	perl -MCPAN -e "force install Net::MQTT::Simple::Auth"
 
-FROM build2 as build3
 RUN	cd /root && \
 	chown -R www-data:www-data /usr/share/zoneminder/ && \
 	echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
@@ -60,7 +57,6 @@ RUN	cd /root && \
 	mysql -sfu root < "mysql_defaults.sql" && \
 	rm mysql_defaults.sql
 
-FROM build3 as build4
 RUN	systemd-tmpfiles --create zoneminder.conf && \
 	mv /root/zoneminder /etc/init.d/zoneminder && \
 	chmod +x /etc/init.d/zoneminder && \
@@ -69,7 +65,6 @@ RUN	systemd-tmpfiles --create zoneminder.conf && \
 	service apache2 restart && \
 	service zoneminder start
 
-FROM build4 as build5
 RUN	mv /root/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf && \
 	mkdir /etc/apache2/ssl/ && \
 	mkdir -p /var/lib/zmeventnotification/images && \
@@ -81,20 +76,16 @@ RUN	mv /root/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf && \
 	cp /etc/apache2/ports.conf /etc/apache2/ports.conf.default && \
 	cp /etc/apache2/sites-enabled/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf.default
 
-FROM build5 as build6
 RUN	apt-get -y remove make && \
-	apt-get -y clean && \
 	apt-get -y autoremove && \
 	rm -rf /tmp/* /var/tmp/* && \
-	chmod +x /etc/my_init.d/*.sh
+	chmod +x /etc/my_init.d/*.sh && \
+	/etc/my_init.d/20_apt_update.sh
 
-FROM build6 as build7
 VOLUME \
 	["/config"] \
 	["/var/cache/zoneminder"]
 
-FROM build7 as build8
 EXPOSE 80 443 9000
 
-FROM build8
 CMD ["/sbin/my_init"]
