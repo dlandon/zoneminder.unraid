@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: phusion/baseimage:focal-1.2.0
+    runs-on: phusion/baseimage
     environment: playground
     permissions:
      contents: read
