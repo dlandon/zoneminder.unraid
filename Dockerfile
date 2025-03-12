@@ -12,7 +12,7 @@ ENV	DEBCONF_NONINTERACTIVE_SEEN="true" \
 	TZ="Etc/UTC" \
 	TERM="xterm" \
 	PHP_VERS="7.4" \
-	ZM_VERS="1.36" \
+	ZM_VERS="1.36.35" \
 	PUID="99" \
 	PGID="100"
 
