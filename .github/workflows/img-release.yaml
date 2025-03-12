@@ -1,4 +1,4 @@
-name: Build and Push Golang Docker Image
+name: Build and Push Zoneminder Docker Image
 
 on:
   # Trigger only when a tag that starts with a digit is pushed (e.g. 1.0.0)
