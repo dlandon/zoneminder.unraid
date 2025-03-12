@@ -7,7 +7,7 @@ on:
 jobs:
   code-quality:
     name: Code Quality Checks
-    runs-on: ubuntu-latest
+    runs-on: phusion/baseimage:focal-1.2.0
     steps:
       - uses: actions/checkout@v4
 
