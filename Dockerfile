@@ -20,7 +20,8 @@ COPY init/ /etc/my_init.d/
 COPY defaults/ /root/
 COPY zmeventnotification/ /root/zmeventnotification/
 
-RUN	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
+RUN echo -e "Package: php8.4*\nPin: release *\nPin-Priority: -1" > /etc/apt/preferences.d/no-php8.4 && \
+	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
 	add-apt-repository ppa:ondrej/php && \
 	add-apt-repository ppa:ondrej/apache2 && \
 	apt-get update && \
