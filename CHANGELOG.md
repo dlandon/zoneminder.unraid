@@ -1,7 +1,7 @@
 ## Change Log
 
 
-###2025-08-28
+### 2025-08-28
 - Rewrite to make initial database creation at run time and not build time.
 - Enable Intel hardware acceleration.
 
