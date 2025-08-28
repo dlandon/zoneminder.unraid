@@ -13,6 +13,7 @@ ENV	DEBCONF_NONINTERACTIVE_SEEN="true" \
 	TERM="xterm" \
 	PHP_VERS="7.4" \
 	ZM_VERS="1.36" \
+	MARIADB_VERS="10.3" \
 	PUID="99" \
 	PGID="100"
 
@@ -21,19 +22,22 @@ COPY defaults/ /root/
 COPY zmeventnotification/ /root/zmeventnotification/
 
 RUN echo -e "Package: php8.4*\nPin: release *\nPin-Priority: -1" > /etc/apt/preferences.d/no-php8.4 && \
+	apt-get update --allow-releaseinfo-change && \
 	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
 	add-apt-repository ppa:ondrej/php && \
 	add-apt-repository ppa:ondrej/apache2 && \
-	apt-get update && \
-	apt-get -y upgrade -o Dpkg::Options::="--force-confold" && \
-	apt-get -y dist-upgrade -o Dpkg::Options::="--force-confold" && \
-	apt-get -y install apache2 mariadb-server && \
-	apt-get -y install ssmtp mailutils net-tools wget sudo make && \
-	apt-get -y install php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd php-intl php$PHP_VERS-intl php$PHP_VERS-apc && \
-	apt-get -y install libcrypt-mysql-perl libyaml-perl libjson-perl libavutil-dev ffmpeg && \
-	apt-get -y install --no-install-recommends libvlc-dev libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output && \
-	apt-get -y install zoneminder
-	
+	apt-get update --allow-releaseinfo-change && \
+	apt-get -y install --no-install-recommends apache2 mariadb-server mariadb-client ssmtp mailutils net-tools \
+		wget sudo make php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd \
+		php-intl php$PHP_VERS-intl php$PHP_VERS-apc libcrypt-mysql-perl libyaml-perl libjson-perl libavutil-dev \
+		ffmpeg libvlc-dev libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output zoneminder \
+		vainfo i965-va-driver libva2 && \
+	apt-mark hold php8.4 php8.4-* || true \
+		mariadb-server mariadb-client mariadb-server-${MARIADB_VERS} mariadb-client-${MARIADB_VERS} && \
+	apt-get -y autoremove && \
+	apt-get -y clean && \
+	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+		
 RUN	rm /etc/mysql/my.cnf && \
 	cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/my.cnf && \
 	adduser www-data video && \
@@ -46,25 +50,9 @@ RUN	rm /etc/mysql/my.cnf && \
 	perl -MCPAN -e "force install Net::MQTT::Simple" && \
 	perl -MCPAN -e "force install Net::MQTT::Simple::Auth"
 
-RUN	cd /root && \
-	chown -R www-data:www-data /usr/share/zoneminder/ && \
-	echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
-	sed -i "s|^;date.timezone =.*|date.timezone = ${TZ}|" /etc/php/$PHP_VERS/apache2/php.ini && \
-	service mysql start && \
-	mysql -uroot -e "grant all on zm.* to 'zmuser'@localhost identified by 'zmpass';" && \
-	mysqladmin -uroot reload && \
-	mysql -sfu root < "mysql_secure_installation.sql" && \
-	rm mysql_secure_installation.sql && \
-	mysql -sfu root < "mysql_defaults.sql" && \
-	rm mysql_defaults.sql
-
 RUN	systemd-tmpfiles --create zoneminder.conf && \
 	mv /root/zoneminder /etc/init.d/zoneminder && \
-	chmod +x /etc/init.d/zoneminder && \
-	service mysql restart && \
-	sleep 5 && \
-	service apache2 restart && \
-	service zoneminder start
+	chmod +x /etc/init.d/zoneminder
 
 RUN	mv /root/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf && \
 	mkdir /etc/apache2/ssl/ && \
@@ -75,12 +63,10 @@ RUN	mv /root/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf && \
 	echo "#!/bin/sh\n\n/usr/bin/zmaudit.pl -f" >> /etc/cron.weekly/zmaudit && \
 	chmod +x /etc/cron.weekly/zmaudit && \
 	cp /etc/apache2/ports.conf /etc/apache2/ports.conf.default && \
-	cp /etc/apache2/sites-enabled/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf.default
+	cp /etc/apache2/sites-enabled/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf.default && \
+	echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 RUN	apt-get -y remove make && \
-	apt-get -y autoremove && \
-	rm -rf /tmp/* /var/tmp/* && \
-	chmod +x /etc/my_init.d/*.sh && \
 	/etc/my_init.d/20_apt_update.sh
 
 VOLUME \

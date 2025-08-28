@@ -307,9 +307,19 @@ rm -f /config/mysql/ib_logfile* 2>/dev/null
 echo "Starting services..."
 service apache2 start
 if [ "$NO_START_ZM" != "1" ]; then
-	# Start mysql
-	sleep 3
-	service mysql restart
+	# Start mariadb
+	service mysql start
+
+	# Wait until MariaDB is fully ready
+	TIMEOUT=30
+	for i in $(seq 1 $TIMEOUT); do
+		if mysqladmin ping -uroot -sfu root >/dev/null 2>&1; then
+			echo "MariaDB is ready."
+			break
+		fi
+		echo "Waiting for MariaDB to start ($i/$TIMEOUT)..."
+		sleep 1
+	done
 
 	# Update the database if necessary
 	zmupdate.pl -nointeractive

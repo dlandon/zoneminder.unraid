@@ -1,5 +1,10 @@
 ## Change Log
 
+
+###2025-08-28
+- Rewrite to make initial database creation at run time and not build time.
+- Enable Intel hardware acceleration.
+
 ### 2025-04-26
 - Refresh docker container.
 
