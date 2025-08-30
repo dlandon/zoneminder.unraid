@@ -1,6 +1,12 @@
 ## Change Log
 
 
+### 2025-08-30
+- Fix pushover notification.
+- New pushapi_pushover.pl perl script.
+- Adjusted pushover credentials in secrets.ini for new script.
+- Add pushover sound setting in zmeventnotification.ini with optional sounds per monitor.
+
 ### 2025-08-28
 - Rewrite to make initial database creation at run time and not build time.
 - Enable Intel hardware acceleration.

@@ -13,7 +13,6 @@ ENV	DEBCONF_NONINTERACTIVE_SEEN="true" \
 	TERM="xterm" \
 	PHP_VERS="7.4" \
 	ZM_VERS="1.36" \
-	MARIADB_VERS="10.3" \
 	PUID="99" \
 	PGID="100"
 
@@ -32,23 +31,22 @@ RUN echo -e "Package: php8.4*\nPin: release *\nPin-Priority: -1" > /etc/apt/pref
 		php-intl php$PHP_VERS-intl php$PHP_VERS-apc libcrypt-mysql-perl libyaml-perl libjson-perl libavutil-dev \
 		ffmpeg libvlc-dev libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output zoneminder \
 		vainfo i965-va-driver libva2 && \
-	apt-mark hold php8.4 php8.4-* || true \
-		mariadb-server mariadb-client mariadb-server-${MARIADB_VERS} mariadb-client-${MARIADB_VERS} && \
+	apt-mark hold php8.4 php8.4-* || true && \
 	apt-get -y autoremove && \
 	apt-get -y clean && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 		
-RUN	rm /etc/mysql/my.cnf && \
-	cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/my.cnf && \
-	adduser www-data video && \
-	a2enmod php$PHP_VERS proxy_fcgi setenvif ssl rewrite expires headers && \
-	a2enconf php$PHP_VERS-fpm zoneminder && \
-	echo "extension=mcrypt.so" > /etc/php/$PHP_VERS/mods-available/mcrypt.ini && \
-	perl -MCPAN -e "force install Net::WebSocket::Server" && \
-	perl -MCPAN -e "force install LWP::Protocol::https" && \
-	perl -MCPAN -e "force install Config::IniFiles" && \
-	perl -MCPAN -e "force install Net::MQTT::Simple" && \
-	perl -MCPAN -e "force install Net::MQTT::Simple::Auth"
+RUN  cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.cnf && \
+     adduser www-data video && \
+     a2enmod php$PHP_VERS proxy_fcgi setenvif ssl rewrite expires headers && \
+     a2enconf php$PHP_VERS-fpm zoneminder && \
+     echo "extension=mcrypt.so" > /etc/php/$PHP_VERS/mods-available/mcrypt.ini && \
+     perl -MCPAN -e "force install Net::WebSocket::Server" && \
+     perl -MCPAN -e "force install LWP::Protocol::https" && \
+     perl -MCPAN -e "force install Config::IniFiles" && \
+     perl -MCPAN -e "force install Net::MQTT::Simple" && \
+     perl -MCPAN -e "force install Net::MQTT::Simple::Auth" && \
+     perl -MCPAN -e "force install Config::Tiny"
 
 RUN	systemd-tmpfiles --create zoneminder.conf && \
 	mv /root/zoneminder /etc/init.d/zoneminder && \
