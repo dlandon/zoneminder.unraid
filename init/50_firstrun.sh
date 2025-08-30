@@ -64,12 +64,12 @@ else
 	echo "Event notification server already moved"
 fi
 
-# Handle the pushapi_pushover.py
-if [ -f /root/zmeventnotification/pushapi_pushover.py ]; then
+# Handle the pushapi_pushover.pl
+if [ -f /root/zmeventnotification/pushapi_pushover.pl ]; then
 	echo "Moving the pushover api"
 	mkdir -p /var/lib/zmeventnotification/bin/
-	mv /root/zmeventnotification/pushapi_pushover.py /var/lib/zmeventnotification/bin/
-	chmod 755 /var/lib/zmeventnotification/bin/pushapi_pushover.py 2>/dev/null
+	mv /root/zmeventnotification/pushapi_pushover.pl /var/lib/zmeventnotification/bin/
+	chmod 755 /var/lib/zmeventnotification/bin/pushapi_pushover.pl 2>/dev/null
 else
 	echo "Pushover api already moved"
 fi
