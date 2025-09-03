@@ -1,5 +1,8 @@
 ## Change Log
 
+### 2025-09-03
+- Use Ubuntu repository for Apache2 and not Ondrej repository for a standard, repeatable  build.
+- Clean up SSL certificate generation and handling.
 
 ### 2025-08-30
 - Fix pushover notification.
