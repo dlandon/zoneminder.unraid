@@ -50,7 +50,7 @@ chown root:root /config/keys
 chmod 755 /config/keys
 
 chown root:root /config/keys/cert.crt
-chmod 644 /config/keys/cert.crt
+chmod 600 /config/keys/cert.crt
 
 chown root:root /config/keys/cert.key
 chmod 600 /config/keys/cert.key

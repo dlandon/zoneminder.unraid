@@ -123,6 +123,8 @@ rm -rf /etc/apache2/ssl/zoneminder.crt
 ln -sf /config/keys/cert.crt /etc/apache2/ssl/zoneminder.crt
 rm -rf /etc/apache2/ssl/zoneminder.key
 ln -sf /config/keys/cert.key /etc/apache2/ssl/zoneminder.key
+rm -rf /etc/apache2/ssl/ServerName
+ln -sf /config/keys/ServerName /etc/apache2/ssl/ServerName
 mkdir -p /var/lib/zmeventnotification/push
 mkdir -p /config/push
 rm -rf /var/lib/zmeventnotification/push/tokens.txt
