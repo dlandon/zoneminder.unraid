@@ -14,6 +14,7 @@ docker run -d --name="Zoneminder" \
 -e MULTI_PORT_START="0" \
 -e MULTI_PORT_END="0" \
 -e NO_START_ZN="1" \
+-e AUTO_OS_UPDATES="0" \
 -v "/mnt/cache/appdata/Zoneminder":"/config":rw \
 -v "/mnt/cache/appdata/Zoneminder/data":"/var/cache/zoneminder":rw \
 dlandon/zoneminder.unraid

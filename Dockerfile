@@ -11,10 +11,11 @@ ENV	DEBCONF_NONINTERACTIVE_SEEN="true" \
 	LANGUAGE="en_US.UTF-8" \
 	TZ="Etc/UTC" \
 	TERM="xterm" \
-	PHP_VERS="7.4" \
-	ZM_VERS="1.36" \
 	PUID="99" \
-	PGID="100"
+	PGID="100" \
+	AUTO_OS_UPDATES="1" \
+	PHP_VERS="7.4" \
+	ZM_VERS="1.36"
 
 COPY init/ /etc/my_init.d/
 COPY defaults/ /root/
