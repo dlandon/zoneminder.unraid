@@ -1,5 +1,13 @@
 ## Change Log
 
+### 2026-09-11
+- Added optional Tailscale support for secure remote access to ZoneMinder.
+- Added support for assigning the container a unique Tailscale hostname.
+- Added persistent storage for the Tailscale configuration and device identity.
+- Added automatic Tailscale startup and shutdown handling.
+- Disabling Tailscale cleanly restores the container’s normal networking behavior.
+- Existing installations remain compatible and do not require Tailscale.
+
 ### 2026-04-25
 - Refresh docker container.
 - Add AUTO_OS_UPDATES environment variable to enable/disable OS and package updates.

@@ -22,16 +22,24 @@ COPY defaults/ /root/
 COPY zmeventnotification/ /root/zmeventnotification/
 
 RUN apt-get update --allow-releaseinfo-change && \
+	apt-get -y install --no-install-recommends wget ca-certificates && \
+	mkdir -p --mode=0755 /usr/share/keyrings && \
+	wget -qO /usr/share/keyrings/tailscale-archive-keyring.gpg \
+		https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg && \
+	wget -qO /etc/apt/sources.list.d/tailscale.list \
+		https://pkgs.tailscale.com/stable/ubuntu/focal.tailscale-keyring.list && \
 	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
 	add-apt-repository ppa:ondrej/php && \
 	apt-get update --allow-releaseinfo-change && \
 	apt-get -y install --no-install-recommends \
 		apache2 mariadb-server mariadb-client ssmtp mailutils net-tools \
-		wget sudo make php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd \
+		wget sudo make tailscale jq \
+		php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd \
 		php$PHP_VERS-intl php$PHP_VERS-apc libcrypt-mysql-perl libyaml-perl libjson-perl \
 		ffmpeg libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output zoneminder \
 		vainfo i965-va-driver libva2 && \
-	apt-mark hold php8.4 php8.4-* || true && \
+	ln -sf /usr/sbin/tailscaled /usr/bin/tailscaled && \
+	(apt-mark hold php8.4 php8.4-* || true) && \
 	apt-get -y upgrade -o Dpkg::Options::="--force-confold"
 		
 RUN	adduser www-data video && \

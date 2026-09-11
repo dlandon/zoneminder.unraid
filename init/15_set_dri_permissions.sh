@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# 15_set_set_dri_permissions.sh
+#
+
+#
 # Script to set up permissions on hardware devices for GPU support.
 # Inspired by how the guys over at linuxserver did this for their Plex image:
 # https://github.com/linuxserver/docker-plex/blob/master/root/etc/cont-init.d/50-gid-video

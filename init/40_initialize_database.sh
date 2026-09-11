@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# 40_initialize_database.sh
+#
 
 set -e
 
