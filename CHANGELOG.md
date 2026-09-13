@@ -1,5 +1,9 @@
 ## Change Log
 
+### 2026-09-13
+- Fixed Event Notification Server support with Tailscale
+- Corrected container startup permissions and file handling to ensure ZoneMinder and the Event Notification Server retain access to required configuration files after container restarts.
+
 ### 2026-09-11
 - Added optional Tailscale support for secure remote access to ZoneMinder.
 - Added support for assigning the container a unique Tailscale hostname.

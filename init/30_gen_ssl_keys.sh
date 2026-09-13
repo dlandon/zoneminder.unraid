@@ -201,16 +201,16 @@ else
 fi
 
 # Permissions.
-chown root:root "${KEY_DIR}" >/dev/null 2>&1
+chown nobody:users "${KEY_DIR}" >/dev/null 2>&1
 chmod 755 "${KEY_DIR}" >/dev/null 2>&1
 
-chown root:root "${CRT}" >/dev/null 2>&1
-chmod 600 "${CRT}" >/dev/null 2>&1
+chown nobody:users "${CRT}" >/dev/null 2>&1
+chmod 644 "${CRT}" >/dev/null 2>&1
 
-chown root:root "${KEY}" >/dev/null 2>&1
+chown nobody:users "${KEY}" >/dev/null 2>&1
 chmod 600 "${KEY}" >/dev/null 2>&1
 
-chown root:root "${SERVER_FILE}" >/dev/null 2>&1
+chown nobody:users "${SERVER_FILE}" >/dev/null 2>&1
 chmod 644 "${SERVER_FILE}" >/dev/null 2>&1
 
 exit ${rc}
