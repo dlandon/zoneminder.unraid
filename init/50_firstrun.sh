@@ -417,7 +417,7 @@ echo "Starting services..."
 service apache2 start
 if [ "$NO_START_ZM" != "1" ]; then
 	# Start mariadb
-	service mysql start
+	service mariadb start
 
 	# Wait until MariaDB is fully ready
 	TIMEOUT=30

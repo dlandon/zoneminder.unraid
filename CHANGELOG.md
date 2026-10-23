@@ -1,5 +1,10 @@
 ## Change Log
 
+### 2026-10-23
+- Migrated the base image to Ubuntu 22.04 Jammy.
+- Applied PHP security updates while retaining PHP 7.4.
+- Added a build-time version check requiring php7.4-fpm and libapache2-mod-php7.4 version 1:7.4.33-31 or newer. The build now fails if either package is below that minimum.
+
 ### 2026-09-13
 - Fixed Event Notification Server support with Tailscale
 - Corrected container startup permissions and file handling to ensure ZoneMinder and the Event Notification Server retain access to required configuration files after container restarts.

@@ -1,4 +1,4 @@
-FROM phusion/baseimage:focal-1.2.0
+FROM phusion/baseimage:jammy-1.0.5
 
 LABEL maintainer="dlandon"
 
@@ -24,12 +24,12 @@ COPY zmeventnotification/ /root/zmeventnotification/
 RUN apt-get update --allow-releaseinfo-change && \
 	apt-get -y install --no-install-recommends wget ca-certificates && \
 	mkdir -p --mode=0755 /usr/share/keyrings && \
-	wget -qO /usr/share/keyrings/tailscale-archive-keyring.gpg \
-		https://pkgs.tailscale.com/stable/ubuntu/focal.noarmor.gpg && \
-	wget -qO /etc/apt/sources.list.d/tailscale.list \
-		https://pkgs.tailscale.com/stable/ubuntu/focal.tailscale-keyring.list && \
+		wget -qO /usr/share/keyrings/tailscale-archive-keyring.gpg \
+			https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg && \
+		wget -qO /etc/apt/sources.list.d/tailscale.list \
+			https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list && \
 	add-apt-repository -y ppa:iconnor/zoneminder-$ZM_VERS && \
-	add-apt-repository ppa:ondrej/php && \
+		add-apt-repository -y ppa:ondrej/php && \
 	apt-get update --allow-releaseinfo-change && \
 	apt-get -y install --no-install-recommends \
 		apache2 mariadb-server mariadb-client ssmtp mailutils net-tools \
@@ -70,6 +70,13 @@ RUN	cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.cnf && \
 	cp /etc/apache2/sites-enabled/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf.default
 
 RUN	apt-get -y upgrade -o Dpkg::Options::="--force-confold" && \
+	for package in php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS; do \
+		version=$(apt-cache policy "$package" | awk '/Installed:/ {print $2}') && \
+		dpkg --compare-versions "$version" ge '1:7.4.33-31' || { \
+			echo "ERROR: $package is not patched: $version" >&2; \
+			exit 1; \
+		}; \
+	done && \
 	apt-get -y remove make && \
 	apt-get -y autoremove && \
 	apt-get -y clean && \
