@@ -155,7 +155,7 @@ ln -sf /config/push/tokens.txt /var/lib/zmeventnotification/push/tokens.txt
 #
 # ssmtp
 #
-rm -rl /etc/ssmtp 
+rm -rf /etc/ssmtp
 ln -s /config/ssmtp /etc/ssmtp
 
 #
@@ -165,7 +165,7 @@ rm -rf /var/lib/mysql
 ln -s /config/mysql /var/lib/mysql
 
 #
-# Set ownership for unRAID
+# Set ownership for Unraid
 #
 PUID="${PUID:-99}"
 PGID="${PGID:-100}"
@@ -414,6 +414,8 @@ fi
 rm -f /config/mysql/ib_logfile* 2>/dev/null
 
 echo "Starting services..."
+# Start PHP-FPM before Apache so the FastCGI socket is available.
+service "php${PHP_VERS:-8.4}-fpm" start
 service apache2 start
 if [ "$NO_START_ZM" != "1" ]; then
 	# Start mariadb

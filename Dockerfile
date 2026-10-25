@@ -14,8 +14,9 @@ ENV	DEBCONF_NONINTERACTIVE_SEEN="true" \
 	PUID="99" \
 	PGID="100" \
 	AUTO_OS_UPDATES="1" \
-	PHP_VERS="7.4" \
-	ZM_VERS="1.36"
+	PHP_VERS="8.4" \
+	PHP_MIN_VERSION="8.4.27" \
+	ZM_VERS="1.38"
 
 COPY init/ /etc/my_init.d/
 COPY defaults/ /root/
@@ -34,18 +35,16 @@ RUN apt-get update --allow-releaseinfo-change && \
 	apt-get -y install --no-install-recommends \
 		apache2 mariadb-server mariadb-client ssmtp mailutils net-tools \
 		wget sudo make tailscale jq \
-		php$PHP_VERS php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS php$PHP_VERS-mysql php$PHP_VERS-gd \
-		php$PHP_VERS-intl php$PHP_VERS-apc libcrypt-mysql-perl libyaml-perl libjson-perl \
+		php$PHP_VERS php$PHP_VERS-fpm php$PHP_VERS-mysql php$PHP_VERS-gd \
+		php$PHP_VERS-intl php$PHP_VERS-apcu libcrypt-mysql-perl libyaml-perl libjson-perl \
 		ffmpeg libvlccore-dev vlc-bin vlc-plugin-base vlc-plugin-video-output zoneminder \
 		vainfo i965-va-driver libva2 && \
 	ln -sf /usr/sbin/tailscaled /usr/bin/tailscaled && \
-	(apt-mark hold php8.4 php8.4-* || true) && \
 	apt-get -y upgrade -o Dpkg::Options::="--force-confold"
 		
 RUN	adduser www-data video && \
-	a2enmod php$PHP_VERS proxy_fcgi setenvif ssl rewrite expires headers && \
+	a2enmod proxy_fcgi setenvif ssl rewrite expires headers && \
 	a2enconf php$PHP_VERS-fpm zoneminder && \
-	echo "extension=mcrypt.so" > /etc/php/$PHP_VERS/mods-available/mcrypt.ini && \
 	perl -MCPAN -e "force install Net::WebSocket::Server" && \
 	perl -MCPAN -e "force install LWP::Protocol::https" && \
 	perl -MCPAN -e "force install Config::IniFiles" && \
@@ -70,9 +69,9 @@ RUN	cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.cnf && \
 	cp /etc/apache2/sites-enabled/default-ssl.conf /etc/apache2/sites-enabled/default-ssl.conf.default
 
 RUN	apt-get -y upgrade -o Dpkg::Options::="--force-confold" && \
-	for package in php$PHP_VERS-fpm libapache2-mod-php$PHP_VERS; do \
+	for package in php$PHP_VERS-fpm; do \
 		version=$(apt-cache policy "$package" | awk '/Installed:/ {print $2}') && \
-		dpkg --compare-versions "$version" ge '1:7.4.33-31' || { \
+		dpkg --compare-versions "$version" ge "$PHP_MIN_VERSION" || { \
 			echo "ERROR: $package is not patched: $version" >&2; \
 			exit 1; \
 		}; \

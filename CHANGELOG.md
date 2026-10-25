@@ -1,5 +1,12 @@
 ## Change Log
 
+### 2026-10-25
+- Updated the base image from Ubuntu Focal to Jammy and ZoneMinder from 1.36.38 to 1.38.6.
+- Migrated PHP from 7.4 to 8.4 FPM; added FPM startup before Apache and updated APCu and PHP package checks.
+- Improved database initialization and error handling; replaced the MariaDB shutdown command with mysqladmin.
+- Corrected the ssmtp cleanup command.
+- Verified startup, database migration, the ZoneMinder UI, live streams, Event Server notifications, and Tailscale access.
+
 ### 2026-10-23
 - Migrated the base image to Ubuntu 22.04 Jammy.
 - Applied PHP security updates while retaining PHP 7.4.
